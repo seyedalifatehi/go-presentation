@@ -112,10 +112,55 @@ func timeoutWithSelect() {
 	}
 }
 
+// ------------------------------------------------------
+// ack channel
+
+func sendMessage(msgChan chan string, ackChan chan string) {
+	counter := 1
+	for {
+		message := fmt.Sprintf("Message #%d sent at %v", counter, time.Now().Format("15:04:05"))
+		msgChan <- message
+
+		fmt.Printf("✅ Sent: %s\n", message)
+
+		acknowledgement := <-ackChan
+		fmt.Printf("📩 Received acknowledgement: %s\n", acknowledgement)
+
+		counter++
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func receiveMessage(msgChan chan string, ackChan chan string) {
+	for {
+		receivedMessage := <-msgChan
+		fmt.Printf("📨 Received: %s\n", receivedMessage)
+
+		ackMessage := fmt.Sprintf("Ack at %v", time.Now().Format("15:04:05"))
+		ackChan <- ackMessage
+
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
+func ackChannel() {
+	fmt.Print("\n===  ===")
+
+	messageChannel := make(chan string)
+	acknowledgeChannel := make(chan string)
+
+	go sendMessage(messageChannel, acknowledgeChannel)
+	go receiveMessage(messageChannel, acknowledgeChannel)
+
+	fmt.Scanln()
+	fmt.Println("Program ended")
+}
+
 func main() {
 	// simpleSendReceive()
 	bufferedChannel()
 	// producerConsumer()
 	// multiChannelSelect()
 	// timeoutWithSelect()
+	// ackChannel()
 }
